@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achtung, die Kurve!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="menu" class="screen">
+        <h1>Achtung, die Kurve!</h1>
+        <div class="menu-content">
+            <h2>Select Number of Players</h2>
+            <div class="player-buttons">
+                <button onclick="startGame(2)">2 Players</button>
+                <button onclick="startGame(3)">3 Players</button>
+                <button onclick="startGame(4)">4 Players</button>
+                <button onclick="startGame(5)">5 Players</button>
+                <button onclick="startGame(6)">6 Players</button>
+            </div>
+            <div class="controls-info">
+                <h3>Controls</h3>
+                <p><span class="player1">Player 1:</span> A / D</p>
+                <p><span class="player2">Player 2:</span> ← / →</p>
+                <p><span class="player3">Player 3:</span> J / L</p>
+                <p><span class="player4">Player 4:</span> V / N</p>
+                <p><span class="player5">Player 5:</span> Numpad 4 / Numpad 6</p>
+                <p><span class="player6">Player 6:</span> Numpad 7 / Numpad 9</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="game" class="screen hidden">
+        <canvas id="gameCanvas"></canvas>
+        <div id="scoreboard"></div>
+    </div>
+
+    <div id="gameOver" class="screen hidden">
+        <h1>Game Over!</h1>
+        <div id="winner"></div>
+        <div id="finalScores"></div>
+        <button onclick="showMenu()">Back to Menu</button>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script src="player.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
