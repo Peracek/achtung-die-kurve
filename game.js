@@ -161,12 +161,12 @@ function gameLoop(currentTime) {
 function update(deltaTime) {
     if (gameState !== 'playing') return;
     
-    players.forEach(player => player.update(deltaTime, gameArea));
+    players.forEach(player => player.update(deltaTime, gameArea, tokenManager.globalWraparoundEnabled));
     
     tokenManager.update(deltaTime, players);
     
     players.forEach(player => {
-        if (player.checkCollision(gameArea, players)) {
+        if (player.checkCollision(gameArea, players, tokenManager.globalWraparoundEnabled)) {
             player.alive = false;
         }
     });
@@ -203,17 +203,16 @@ function render() {
     
     tokenManager.draw(ctx);
     
-    players.forEach(player => player.draw(ctx));
+    const currentTime = performance.now();
+    players.forEach(player => player.draw(ctx, currentTime));
 }
 
 function drawBorder() {
-    const anyWraparound = players.some(p => p.wraparoundEnabled);
-    
-    if (anyWraparound) {
+    if (tokenManager.globalWraparoundEnabled) {
         borderPulsePhase += 0.1;
         const pulse = Math.sin(borderPulsePhase) * 0.5 + 0.5;
-        const brightness = 100 + pulse * 155;
-        ctx.strokeStyle = `rgb(0, ${brightness}, ${brightness})`;
+        const brightness = 200 + pulse * 55;
+        ctx.strokeStyle = `rgb(${brightness}, ${brightness}, 0)`;
         ctx.lineWidth = 3 + pulse * 2;
     } else {
         ctx.strokeStyle = '#00ff88';

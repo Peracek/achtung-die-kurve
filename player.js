@@ -33,7 +33,7 @@ class Player {
         this.wraparoundTimeout = null;
     }
     
-    update(deltaTime, gameArea) {
+    update(deltaTime, gameArea, globalWraparound) {
         if (!this.alive) return;
         
         const turnDirection = this.controlsReversed ? -1 : 1;
@@ -48,7 +48,7 @@ class Player {
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed;
         
-        this.handleWraparound(gameArea);
+        this.handleWraparound(gameArea, globalWraparound);
         
         if (!this.inGap) {
             const currentSegment = this.trailSegments[this.trailSegments.length - 1];
@@ -72,7 +72,7 @@ class Player {
         }
     }
     
-    draw(ctx) {
+    draw(ctx, currentTime) {
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.lineWidth;
         ctx.lineCap = 'round';
@@ -90,24 +90,42 @@ class Player {
         }
         
         if (this.alive) {
-            ctx.fillStyle = this.color;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fill();
-            
             if (!this.inGap) {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
+                if (this.wraparoundEnabled) {
+                    const pulse = Math.sin(currentTime * 0.005) * 0.5 + 0.5;
+                    ctx.globalAlpha = pulse;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            } else {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0;
             }
         }
     }
     
-    checkCollision(gameArea, allPlayers) {
+    checkCollision(gameArea, allPlayers, globalWraparound) {
         if (!this.alive) return false;
         
-        if (!this.wraparoundEnabled) {
+        if (!this.wraparoundEnabled && !globalWraparound) {
             if (this.x - this.radius < gameArea.x || 
                 this.x + this.radius > gameArea.x + gameArea.width || 
                 this.y - this.radius < gameArea.y || 
@@ -192,8 +210,8 @@ class Player {
         }, duration);
     }
     
-    handleWraparound(gameArea) {
-        if (!this.wraparoundEnabled) return;
+    handleWraparound(gameArea, globalWraparound) {
+        if (!this.wraparoundEnabled && !globalWraparound) return;
         
         let wrapped = false;
         

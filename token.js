@@ -2,12 +2,20 @@ const TOKEN_TYPES = {
     REVERSE_CONTROLS: {
         name: 'Reverse Controls',
         color: '#ff00ff',
-        duration: () => 5000 + Math.random() * 5000
+        duration: () => 5000 + Math.random() * 5000,
+        global: false
     },
-    WRAPAROUND: {
-        name: 'Wraparound',
+    PLAYER_WRAPAROUND: {
+        name: 'Player Wraparound',
         color: '#00ffff',
-        duration: () => 5000 + Math.random() * 5000
+        duration: () => 5000 + Math.random() * 5000,
+        global: false
+    },
+    GLOBAL_WRAPAROUND: {
+        name: 'Global Wraparound',
+        color: '#ffff00',
+        duration: () => 5000 + Math.random() * 5000,
+        global: true
     }
 };
 
@@ -48,6 +56,8 @@ class TokenManager {
         this.tokens = [];
         this.spawnTimer = 0;
         this.nextSpawnTime = this.getRandomSpawnTime();
+        this.globalWraparoundEnabled = false;
+        this.globalWraparoundTimeout = null;
     }
     
     getRandomSpawnTime() {
@@ -91,9 +101,23 @@ class TokenManager {
     applyTokenEffect(token, player) {
         if (token.type === TOKEN_TYPES.REVERSE_CONTROLS) {
             player.applyReverseControls(token.type.duration());
-        } else if (token.type === TOKEN_TYPES.WRAPAROUND) {
+        } else if (token.type === TOKEN_TYPES.PLAYER_WRAPAROUND) {
             player.applyWraparound(token.type.duration());
+        } else if (token.type === TOKEN_TYPES.GLOBAL_WRAPAROUND) {
+            this.applyGlobalWraparound(token.type.duration());
         }
+    }
+    
+    applyGlobalWraparound(duration) {
+        if (this.globalWraparoundTimeout) {
+            clearTimeout(this.globalWraparoundTimeout);
+        }
+        
+        this.globalWraparoundEnabled = true;
+        this.globalWraparoundTimeout = setTimeout(() => {
+            this.globalWraparoundEnabled = false;
+            this.globalWraparoundTimeout = null;
+        }, duration);
     }
     
     draw(ctx) {
@@ -104,6 +128,12 @@ class TokenManager {
         this.tokens = [];
         this.spawnTimer = 0;
         this.nextSpawnTime = this.getRandomSpawnTime();
+        
+        if (this.globalWraparoundTimeout) {
+            clearTimeout(this.globalWraparoundTimeout);
+        }
+        this.globalWraparoundEnabled = false;
+        this.globalWraparoundTimeout = null;
     }
     
     updateGameArea(gameArea) {
