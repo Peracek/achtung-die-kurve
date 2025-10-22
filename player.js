@@ -1,3 +1,5 @@
+const GAP_DURATION_MS = 400;
+
 class Player {
     constructor(id, name, color, x, y, angle, leftKey, rightKey) {
         this.id = id;
@@ -56,7 +58,7 @@ class Player {
                     this.trailSegments.push([]);
                     this.inGap = false;
                 }
-            }, 150);
+            }, GAP_DURATION_MS);
         }
     }
     
