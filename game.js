@@ -18,6 +18,7 @@ let gameState = 'menu';
 let lastTime = 0;
 let animationId;
 let gameArea = { x: 0, y: 0, width: 0, height: 0 };
+let tokenManager;
 
 function init() {
     canvas = document.getElementById('gameCanvas');
@@ -40,6 +41,10 @@ function resizeCanvas() {
         width: canvas.width - GAME_BORDER * 2,
         height: canvas.height - SCOREBOARD_HEIGHT - GAME_BORDER * 2
     };
+    
+    if (tokenManager) {
+        tokenManager.updateGameArea(gameArea);
+    }
 }
 
 function handleKeyDown(e) {
@@ -97,6 +102,7 @@ function createPlayers(count) {
 function startGame(count) {
     numPlayers = count;
     createPlayers(count);
+    tokenManager = new TokenManager(gameArea);
     
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('game').classList.remove('hidden');
@@ -135,6 +141,8 @@ function startNewRound() {
         player.reset(x, y, startAngle);
     });
     
+    tokenManager.reset();
+    
     gameState = 'playing';
     lastTime = performance.now();
 }
@@ -153,6 +161,8 @@ function update(deltaTime) {
     if (gameState !== 'playing') return;
     
     players.forEach(player => player.update(deltaTime));
+    
+    tokenManager.update(deltaTime, players);
     
     players.forEach(player => {
         if (player.checkCollision(gameArea, players)) {
@@ -191,6 +201,8 @@ function render() {
     ctx.strokeRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
     
     drawScoreboard();
+    
+    tokenManager.draw(ctx);
     
     players.forEach(player => player.draw(ctx));
 }

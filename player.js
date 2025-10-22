@@ -25,16 +25,21 @@ class Player {
         this.gapTimer = 0;
         this.gapInterval = Math.random() * 2000 + 1000;
         this.inGap = false;
+        
+        this.controlsReversed = false;
+        this.reverseTimeout = null;
     }
     
     update(deltaTime) {
         if (!this.alive) return;
         
+        const turnDirection = this.controlsReversed ? -1 : 1;
+        
         if (this.leftPressed) {
-            this.angle -= this.turnSpeed;
+            this.angle -= this.turnSpeed * turnDirection;
         }
         if (this.rightPressed) {
-            this.angle += this.turnSpeed;
+            this.angle += this.turnSpeed * turnDirection;
         }
         
         this.x += Math.cos(this.angle) * this.speed;
@@ -156,6 +161,18 @@ class Player {
         return false;
     }
     
+    applyReverseControls(duration) {
+        if (this.reverseTimeout) {
+            clearTimeout(this.reverseTimeout);
+        }
+        
+        this.controlsReversed = true;
+        this.reverseTimeout = setTimeout(() => {
+            this.controlsReversed = false;
+            this.reverseTimeout = null;
+        }, duration);
+    }
+    
     reset(x, y, angle) {
         this.x = x;
         this.y = y;
@@ -166,5 +183,11 @@ class Player {
         this.inGap = false;
         this.leftPressed = false;
         this.rightPressed = false;
+        
+        if (this.reverseTimeout) {
+            clearTimeout(this.reverseTimeout);
+        }
+        this.controlsReversed = false;
+        this.reverseTimeout = null;
     }
 }
