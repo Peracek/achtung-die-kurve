@@ -27,6 +27,13 @@ function init() {
     controllerManager = new ControllerManager();
     controllerManager.initHost();
     
+    controllerManager.onPeerId((peerId) => {
+        console.log('Peer ID generated:', peerId);
+        if (typeof updateMobileUrl === 'function') {
+            updateMobileUrl(peerId);
+        }
+    });
+    
     controllerManager.onConnect((controllerId) => {
         console.log(`Controller ${controllerId} connected`);
         playerControllerInputs[controllerId] = { left: false, right: false };

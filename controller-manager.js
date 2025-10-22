@@ -1,71 +1,113 @@
 class ControllerManager {
     constructor() {
-        this.controllers = new Map();
+        this.peer = null;
+        this.connections = new Map();
         this.onInputCallback = null;
         this.onConnectCallback = null;
         this.onDisconnectCallback = null;
+        this.onPeerIdCallback = null;
         this.nextControllerId = 0;
-        this.channel = null;
         this.isHost = false;
+        this.peerId = null;
+        this.myControllerId = null;
     }
     
     initHost() {
         this.isHost = true;
-        this.channel = new BroadcastChannel('game-controller');
         
-        this.channel.onmessage = (event) => {
-            const { type, controllerId, data } = event.data;
+        this.peer = new Peer();
+        
+        this.peer.on('open', (id) => {
+            this.peerId = id;
+            console.log('Host peer ID:', id);
+            if (this.onPeerIdCallback) {
+                this.onPeerIdCallback(id);
+            }
+        });
+        
+        this.peer.on('connection', (conn) => {
+            const controllerId = this.nextControllerId++;
+            this.connections.set(controllerId, conn);
             
-            if (type === 'connect') {
-                const newId = this.nextControllerId++;
-                this.controllers.set(newId, { connected: true });
-                
-                this.channel.postMessage({
+            console.log('Controller connected:', controllerId);
+            
+            conn.on('open', () => {
+                conn.send({
                     type: 'assign-id',
-                    controllerId: newId
+                    controllerId: controllerId
                 });
                 
                 if (this.onConnectCallback) {
-                    this.onConnectCallback(newId);
-                }
-            } else if (type === 'input') {
-                if (this.onInputCallback && this.controllers.has(controllerId)) {
-                    this.onInputCallback(controllerId, data);
-                }
-            } else if (type === 'disconnect') {
-                if (this.controllers.has(controllerId)) {
-                    this.controllers.delete(controllerId);
-                    if (this.onDisconnectCallback) {
-                        this.onDisconnectCallback(controllerId);
-                    }
-                }
-            }
-        };
-    }
-    
-    initController() {
-        this.isHost = false;
-        this.channel = new BroadcastChannel('game-controller');
-        
-        this.channel.onmessage = (event) => {
-            const { type, controllerId } = event.data;
-            
-            if (type === 'assign-id') {
-                this.myControllerId = controllerId;
-                if (this.onConnectCallback) {
                     this.onConnectCallback(controllerId);
                 }
-            }
-        };
+            });
+            
+            conn.on('data', (data) => {
+                if (data.type === 'input' && this.onInputCallback) {
+                    this.onInputCallback(controllerId, data.data);
+                }
+            });
+            
+            conn.on('close', () => {
+                console.log('Controller disconnected:', controllerId);
+                this.connections.delete(controllerId);
+                if (this.onDisconnectCallback) {
+                    this.onDisconnectCallback(controllerId);
+                }
+            });
+            
+            conn.on('error', (err) => {
+                console.error('Connection error:', err);
+            });
+        });
         
-        this.channel.postMessage({ type: 'connect' });
+        this.peer.on('error', (err) => {
+            console.error('Peer error:', err);
+        });
+    }
+    
+    initController(hostPeerId) {
+        this.isHost = false;
+        
+        this.peer = new Peer();
+        
+        this.peer.on('open', () => {
+            console.log('Connecting to host:', hostPeerId);
+            const conn = this.peer.connect(hostPeerId);
+            
+            conn.on('open', () => {
+                console.log('Connected to host');
+                this.hostConnection = conn;
+            });
+            
+            conn.on('data', (data) => {
+                if (data.type === 'assign-id') {
+                    this.myControllerId = data.controllerId;
+                    console.log('Assigned controller ID:', this.myControllerId);
+                    if (this.onConnectCallback) {
+                        this.onConnectCallback(this.myControllerId);
+                    }
+                }
+            });
+            
+            conn.on('close', () => {
+                console.log('Disconnected from host');
+            });
+            
+            conn.on('error', (err) => {
+                console.error('Connection error:', err);
+            });
+        });
+        
+        this.peer.on('error', (err) => {
+            console.error('Peer error:', err);
+        });
     }
     
     sendInput(action, value) {
-        if (!this.isHost && this.myControllerId !== undefined) {
-            this.channel.postMessage({
+        if (!this.isHost && this.hostConnection) {
+            this.hostConnection.send({
                 type: 'input',
-                controllerId: this.myControllerId,
                 data: { action, value }
             });
         }
@@ -83,19 +125,24 @@ class ControllerManager {
         this.onInputCallback = callback;
     }
     
+    onPeerId(callback) {
+        this.onPeerIdCallback = callback;
+    }
+    
     getConnectedCount() {
-        return this.controllers.size;
+        return this.connections.size;
+    }
+    
+    getPeerId() {
+        return this.peerId;
     }
     
     disconnect() {
-        if (!this.isHost && this.myControllerId !== undefined) {
-            this.channel.postMessage({
-                type: 'disconnect',
-                controllerId: this.myControllerId
-            });
+        if (this.hostConnection) {
+            this.hostConnection.close();
         }
-        if (this.channel) {
-            this.channel.close();
+        if (this.peer) {
+            this.peer.destroy();
         }
     }
 }

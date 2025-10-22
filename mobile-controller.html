@@ -40,6 +40,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="controller-manager.js"></script>
     <script>
         const controllerManager = new ControllerManager();
@@ -52,7 +53,16 @@
 
         const PLAYER_COLORS = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8b94', '#c7ceea'];
 
-        controllerManager.initController();
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostPeerId = urlParams.get('peer');
+
+        if (!hostPeerId) {
+            statusText.textContent = 'Error: No peer ID in URL';
+            statusDiv.className = 'disconnected';
+        } else {
+            statusText.textContent = `Connecting to ${hostPeerId.substring(0, 8)}...`;
+            controllerManager.initController(hostPeerId);
+        }
 
         controllerManager.onConnect((controllerId) => {
             statusText.textContent = `Connected as Player ${controllerId + 1}`;
