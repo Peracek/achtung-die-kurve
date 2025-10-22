@@ -6,8 +6,8 @@ class Player {
         this.x = x;
         this.y = y;
         this.angle = angle;
-        this.speed = 1;
-        this.turnSpeed = 0.08;
+        this.speed = 0.5;
+        this.turnSpeed = 0.02;
         this.radius = 3;
         this.lineWidth = 4;
         
