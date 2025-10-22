@@ -8,6 +8,8 @@ const PLAYER_CONFIGS = [
 ];
 
 const WINNING_SCORE = 10;
+const SCOREBOARD_HEIGHT = 60;
+const GAME_BORDER = 10;
 
 let canvas, ctx;
 let players = [];
@@ -15,6 +17,7 @@ let numPlayers = 2;
 let gameState = 'menu';
 let lastTime = 0;
 let animationId;
+let gameArea = { x: 0, y: 0, width: 0, height: 0 };
 
 function init() {
     canvas = document.getElementById('gameCanvas');
@@ -30,6 +33,13 @@ function init() {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    gameArea = {
+        x: GAME_BORDER,
+        y: SCOREBOARD_HEIGHT + GAME_BORDER,
+        width: canvas.width - GAME_BORDER * 2,
+        height: canvas.height - SCOREBOARD_HEIGHT - GAME_BORDER * 2
+    };
 }
 
 function handleKeyDown(e) {
@@ -67,8 +77,8 @@ function createPlayers(count) {
     for (let i = 0; i < count; i++) {
         const config = PLAYER_CONFIGS[i];
         const angle = (Math.PI * 2 / count) * i;
-        const x = canvas.width / 2 + Math.cos(angle) * 200;
-        const y = canvas.height / 2 + Math.sin(angle) * 200;
+        const x = gameArea.x + gameArea.width / 2 + Math.cos(angle) * 200;
+        const y = gameArea.y + gameArea.height / 2 + Math.sin(angle) * 200;
         const startAngle = angle + Math.PI + (Math.random() - 0.5) * 0.5;
         
         players.push(new Player(
@@ -118,8 +128,8 @@ function startNewRound() {
     
     players.forEach((player, i) => {
         const angle = (Math.PI * 2 / players.length) * i;
-        const x = canvas.width / 2 + Math.cos(angle) * 200;
-        const y = canvas.height / 2 + Math.sin(angle) * 200;
+        const x = gameArea.x + gameArea.width / 2 + Math.cos(angle) * 200;
+        const y = gameArea.y + gameArea.height / 2 + Math.sin(angle) * 200;
         const startAngle = angle + Math.PI + (Math.random() - 0.5) * 0.5;
         
         player.reset(x, y, startAngle);
@@ -145,7 +155,7 @@ function update(deltaTime) {
     players.forEach(player => player.update(deltaTime));
     
     players.forEach(player => {
-        if (player.checkCollision(canvas, players)) {
+        if (player.checkCollision(gameArea, players)) {
             player.alive = false;
         }
     });
@@ -156,8 +166,6 @@ function update(deltaTime) {
         if (alivePlayers.length === 1) {
             alivePlayers[0].score++;
         }
-        
-        updateScoreboard();
         
         const winner = players.find(p => p.score >= WINNING_SCORE);
         if (winner) {
@@ -175,17 +183,34 @@ function render() {
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    players.forEach(player => player.draw(ctx));
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
     
-    updateScoreboard();
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
+    
+    drawScoreboard();
+    
+    players.forEach(player => player.draw(ctx));
 }
 
-function updateScoreboard() {
-    const scoreboard = document.getElementById('scoreboard');
-    scoreboard.innerHTML = players.map(player => {
+function drawScoreboard() {
+    ctx.fillStyle = '#eee';
+    ctx.font = '16px Arial';
+    ctx.textBaseline = 'middle';
+    
+    const spacing = canvas.width / players.length;
+    players.forEach((player, i) => {
+        const x = spacing * i + spacing / 2;
+        const y = SCOREBOARD_HEIGHT / 2;
+        
+        ctx.fillStyle = player.color;
         const status = player.alive ? '●' : '○';
-        return `<div class="score-item" style="color: ${player.color}">${status} ${player.name}: ${player.score}</div>`;
-    }).join('');
+        const text = `${status} ${player.name}: ${player.score}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(text, x, y);
+    });
 }
 
 function endGame(winner) {

@@ -94,13 +94,13 @@ class Player {
         }
     }
     
-    checkCollision(canvas, allPlayers) {
+    checkCollision(gameArea, allPlayers) {
         if (!this.alive) return false;
         
-        if (this.x - this.radius < 0 || 
-            this.x + this.radius > canvas.width || 
-            this.y - this.radius < 0 || 
-            this.y + this.radius > canvas.height) {
+        if (this.x - this.radius < gameArea.x || 
+            this.x + this.radius > gameArea.x + gameArea.width || 
+            this.y - this.radius < gameArea.y || 
+            this.y + this.radius > gameArea.y + gameArea.height) {
             return true;
         }
         
