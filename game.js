@@ -20,8 +20,54 @@ let animationId;
 let gameArea = { x: 0, y: 0, width: 0, height: 0 };
 let tokenManager;
 let borderPulsePhase = 0;
+let controllerManager;
+let playerControllerInputs = {};
 
 function init() {
+    controllerManager = new ControllerManager();
+    controllerManager.initHost();
+    
+    controllerManager.onConnect((controllerId) => {
+        console.log(`Controller ${controllerId} connected`);
+        playerControllerInputs[controllerId] = { left: false, right: false };
+        
+        if (players[controllerId]) {
+            players[controllerId].setControllerConnected(true);
+        }
+        
+        updateConnectionStatus();
+    });
+    
+    controllerManager.onDisconnect((controllerId) => {
+        console.log(`Controller ${controllerId} disconnected`);
+        delete playerControllerInputs[controllerId];
+        
+        if (players[controllerId]) {
+            players[controllerId].setControllerConnected(false);
+        }
+        
+        updateConnectionStatus();
+    });
+    
+    controllerManager.onInput((controllerId, data) => {
+        if (!playerControllerInputs[controllerId]) {
+            playerControllerInputs[controllerId] = { left: false, right: false };
+        }
+        
+        if (data.action === 'left') {
+            playerControllerInputs[controllerId].left = data.value;
+        } else if (data.action === 'right') {
+            playerControllerInputs[controllerId].right = data.value;
+        }
+        
+        if (players[controllerId]) {
+            players[controllerId].setControllerInput(
+                playerControllerInputs[controllerId].left,
+                playerControllerInputs[controllerId].right
+            );
+        }
+    });
+    
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     
@@ -257,6 +303,21 @@ function endGame(winner) {
         ).join('');
     
     players.forEach(player => player.score = 0);
+}
+
+function updateConnectionStatus() {
+    const statusElement = document.getElementById('controller-status');
+    if (!statusElement) return;
+    
+    const connectedCount = controllerManager.getConnectedCount();
+    statusElement.textContent = `${connectedCount} controller${connectedCount !== 1 ? 's' : ''} connected`;
+    
+    players.forEach((player, i) => {
+        const indicator = document.querySelector(`.player-controller-indicator[data-player="${i}"]`);
+        if (indicator) {
+            indicator.classList.toggle('connected', player.controllerConnected);
+        }
+    });
 }
 
 window.addEventListener('load', init);

@@ -119,3 +119,71 @@ button:hover {
 #finalScores .score-item {
     margin: 0.8rem 0;
 }
+
+.mobile-control-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid rgba(0, 255, 136, 0.3);
+    border-radius: 10px;
+    max-width: 500px;
+}
+
+.mobile-control-info h3 {
+    margin-top: 0;
+    color: #00ff88;
+}
+
+.mobile-url-box {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 15px 0;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.mobile-url-box code {
+    flex: 1;
+    font-size: 14px;
+    word-break: break-all;
+    color: #00ff88;
+}
+
+.copy-btn {
+    padding: 8px 16px;
+    background: #00ff88;
+    border: none;
+    border-radius: 5px;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: #00dd77;
+    transform: scale(1.05);
+}
+
+.small-text {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 10px 0 5px 0;
+}
+
+#qr-code {
+    display: inline-block;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.controller-status {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #00ff88;
+    font-size: 1.1rem;
+}

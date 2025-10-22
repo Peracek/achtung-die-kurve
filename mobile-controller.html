@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Controller - Achtung, die Kurve!</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+</head>
+<body>
+    <div id="connection-status" class="disconnected">
+        <div class="status-indicator"></div>
+        <span id="status-text">Connecting...</span>
+    </div>
+
+    <div id="controller-container">
+        <div id="player-info">
+            <h1>Player <span id="player-number">-</span></h1>
+            <div id="player-color-indicator"></div>
+        </div>
+
+        <div id="controls">
+            <button id="left-btn" class="control-btn left-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+                <span>LEFT</span>
+            </button>
+            
+            <button id="right-btn" class="control-btn right-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+                <span>RIGHT</span>
+            </button>
+        </div>
+
+        <div id="instructions">
+            <p>Keep this page open to control the game</p>
+            <p class="small">Make sure your device doesn't go to sleep</p>
+        </div>
+    </div>
+
+    <script src="controller-manager.js"></script>
+    <script>
+        const controllerManager = new ControllerManager();
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const statusText = document.getElementById('status-text');
+        const statusDiv = document.getElementById('connection-status');
+        const playerNumber = document.getElementById('player-number');
+        const playerColorIndicator = document.getElementById('player-color-indicator');
+
+        const PLAYER_COLORS = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8b94', '#c7ceea'];
+
+        controllerManager.initController();
+
+        controllerManager.onConnect((controllerId) => {
+            statusText.textContent = `Connected as Player ${controllerId + 1}`;
+            statusDiv.className = 'connected';
+            playerNumber.textContent = controllerId + 1;
+            playerColorIndicator.style.backgroundColor = PLAYER_COLORS[controllerId % PLAYER_COLORS.length];
+            
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+        });
+
+        function handleTouchStart(action, event) {
+            event.preventDefault();
+            controllerManager.sendInput(action, true);
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function handleTouchEnd(action, event) {
+            event.preventDefault();
+            controllerManager.sendInput(action, false);
+        }
+
+        leftBtn.addEventListener('touchstart', (e) => handleTouchStart('left', e));
+        leftBtn.addEventListener('touchend', (e) => handleTouchEnd('left', e));
+        leftBtn.addEventListener('mousedown', (e) => handleTouchStart('left', e));
+        leftBtn.addEventListener('mouseup', (e) => handleTouchEnd('left', e));
+
+        rightBtn.addEventListener('touchstart', (e) => handleTouchStart('right', e));
+        rightBtn.addEventListener('touchend', (e) => handleTouchEnd('right', e));
+        rightBtn.addEventListener('mousedown', (e) => handleTouchStart('right', e));
+        rightBtn.addEventListener('mouseup', (e) => handleTouchEnd('right', e));
+
+        window.addEventListener('beforeunload', () => {
+            controllerManager.disconnect();
+        });
+
+        if ('wakeLock' in navigator) {
+            let wakeLock = null;
+            const requestWakeLock = async () => {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.log('Wake Lock error:', err);
+                }
+            };
+            requestWakeLock();
+        }
+    </script>
+</body>
+</html>

@@ -18,6 +18,8 @@ class Player {
         this.leftPressed = false;
         this.rightPressed = false;
         
+        this.controllerConnected = false;
+        
         this.trailSegments = [[]];
         this.alive = true;
         this.score = 0;
@@ -31,6 +33,15 @@ class Player {
         
         this.wraparoundEnabled = false;
         this.wraparoundTimeout = null;
+    }
+    
+    setControllerInput(left, right) {
+        this.leftPressed = left;
+        this.rightPressed = right;
+    }
+    
+    setControllerConnected(connected) {
+        this.controllerConnected = connected;
     }
     
     update(deltaTime, gameArea, globalWraparound) {
