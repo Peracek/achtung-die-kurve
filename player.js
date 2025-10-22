@@ -16,9 +16,8 @@ class Player {
         this.leftPressed = false;
         this.rightPressed = false;
         
-        this.trail = [];
+        this.trailSegments = [[]];
         this.alive = true;
-        this.drawing = true;
         this.score = 0;
         
         this.gapTimer = 0;
@@ -39,37 +38,43 @@ class Player {
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed;
         
-        if (this.drawing && !this.inGap) {
-            this.trail.push({
+        if (!this.inGap) {
+            const currentSegment = this.trailSegments[this.trailSegments.length - 1];
+            currentSegment.push({
                 x: this.x,
                 y: this.y
             });
         }
         
         this.gapTimer += deltaTime;
-        if (this.gapTimer >= this.gapInterval) {
+        if (this.gapTimer >= this.gapInterval && !this.inGap) {
             this.inGap = true;
+            this.gapTimer = 0;
+            this.gapInterval = Math.random() * 2000 + 1000;
             setTimeout(() => {
-                this.inGap = false;
-                this.gapTimer = 0;
-                this.gapInterval = Math.random() * 2000 + 1000;
+                if (this.alive) {
+                    this.trailSegments.push([]);
+                    this.inGap = false;
+                }
             }, 150);
         }
     }
     
     draw(ctx) {
-        if (this.trail.length > 1) {
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = this.lineWidth;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            ctx.beginPath();
-            ctx.moveTo(this.trail[0].x, this.trail[0].y);
-            for (let i = 1; i < this.trail.length; i++) {
-                ctx.lineTo(this.trail[i].x, this.trail[i].y);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        for (let segment of this.trailSegments) {
+            if (segment.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(segment[0].x, segment[0].y);
+                for (let i = 1; i < segment.length; i++) {
+                    ctx.lineTo(segment[i].x, segment[i].y);
+                }
+                ctx.stroke();
             }
-            ctx.stroke();
         }
         
         if (this.alive) {
@@ -98,16 +103,22 @@ class Player {
         }
         
         for (let player of allPlayers) {
-            const trail = player.trail;
-            const startIndex = player.id === this.id ? 0 : 0;
-            const endIndex = player.id === this.id ? trail.length - 20 : trail.length;
-            
-            for (let i = startIndex; i < endIndex - 1; i++) {
-                const p1 = trail[i];
-                const p2 = trail[i + 1];
+            for (let segmentIndex = 0; segmentIndex < player.trailSegments.length; segmentIndex++) {
+                const segment = player.trailSegments[segmentIndex];
                 
-                if (this.lineCircleCollision(p1, p2, {x: this.x, y: this.y}, this.radius + this.lineWidth / 2)) {
-                    return true;
+                if (segment.length < 2) continue;
+                
+                const isOwnSegment = player.id === this.id;
+                const isLastSegment = segmentIndex === player.trailSegments.length - 1;
+                const skipLast = isOwnSegment && isLastSegment ? 20 : 0;
+                
+                for (let i = 0; i < segment.length - 1 - skipLast; i++) {
+                    const p1 = segment[i];
+                    const p2 = segment[i + 1];
+                    
+                    if (this.lineCircleCollision(p1, p2, {x: this.x, y: this.y}, this.radius + this.lineWidth / 2)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -147,9 +158,8 @@ class Player {
         this.x = x;
         this.y = y;
         this.angle = angle;
-        this.trail = [];
+        this.trailSegments = [[]];
         this.alive = true;
-        this.drawing = true;
         this.gapTimer = 0;
         this.inGap = false;
         this.leftPressed = false;
