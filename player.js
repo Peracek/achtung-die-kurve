@@ -28,9 +28,12 @@ class Player {
         
         this.controlsReversed = false;
         this.reverseTimeout = null;
+        
+        this.wraparoundEnabled = false;
+        this.wraparoundTimeout = null;
     }
     
-    update(deltaTime) {
+    update(deltaTime, gameArea) {
         if (!this.alive) return;
         
         const turnDirection = this.controlsReversed ? -1 : 1;
@@ -44,6 +47,8 @@ class Player {
         
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed;
+        
+        this.handleWraparound(gameArea);
         
         if (!this.inGap) {
             const currentSegment = this.trailSegments[this.trailSegments.length - 1];
@@ -102,11 +107,13 @@ class Player {
     checkCollision(gameArea, allPlayers) {
         if (!this.alive) return false;
         
-        if (this.x - this.radius < gameArea.x || 
-            this.x + this.radius > gameArea.x + gameArea.width || 
-            this.y - this.radius < gameArea.y || 
-            this.y + this.radius > gameArea.y + gameArea.height) {
-            return true;
+        if (!this.wraparoundEnabled) {
+            if (this.x - this.radius < gameArea.x || 
+                this.x + this.radius > gameArea.x + gameArea.width || 
+                this.y - this.radius < gameArea.y || 
+                this.y + this.radius > gameArea.y + gameArea.height) {
+                return true;
+            }
         }
         
         for (let player of allPlayers) {
@@ -173,6 +180,44 @@ class Player {
         }, duration);
     }
     
+    applyWraparound(duration) {
+        if (this.wraparoundTimeout) {
+            clearTimeout(this.wraparoundTimeout);
+        }
+        
+        this.wraparoundEnabled = true;
+        this.wraparoundTimeout = setTimeout(() => {
+            this.wraparoundEnabled = false;
+            this.wraparoundTimeout = null;
+        }, duration);
+    }
+    
+    handleWraparound(gameArea) {
+        if (!this.wraparoundEnabled) return;
+        
+        let wrapped = false;
+        
+        if (this.x - this.radius < gameArea.x) {
+            this.x = gameArea.x + gameArea.width - this.radius;
+            wrapped = true;
+        } else if (this.x + this.radius > gameArea.x + gameArea.width) {
+            this.x = gameArea.x + this.radius;
+            wrapped = true;
+        }
+        
+        if (this.y - this.radius < gameArea.y) {
+            this.y = gameArea.y + gameArea.height - this.radius;
+            wrapped = true;
+        } else if (this.y + this.radius > gameArea.y + gameArea.height) {
+            this.y = gameArea.y + this.radius;
+            wrapped = true;
+        }
+        
+        if (wrapped) {
+            this.trailSegments.push([]);
+        }
+    }
+    
     reset(x, y, angle) {
         this.x = x;
         this.y = y;
@@ -189,5 +234,11 @@ class Player {
         }
         this.controlsReversed = false;
         this.reverseTimeout = null;
+        
+        if (this.wraparoundTimeout) {
+            clearTimeout(this.wraparoundTimeout);
+        }
+        this.wraparoundEnabled = false;
+        this.wraparoundTimeout = null;
     }
 }

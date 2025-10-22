@@ -19,6 +19,7 @@ let lastTime = 0;
 let animationId;
 let gameArea = { x: 0, y: 0, width: 0, height: 0 };
 let tokenManager;
+let borderPulsePhase = 0;
 
 function init() {
     canvas = document.getElementById('gameCanvas');
@@ -160,7 +161,7 @@ function gameLoop(currentTime) {
 function update(deltaTime) {
     if (gameState !== 'playing') return;
     
-    players.forEach(player => player.update(deltaTime));
+    players.forEach(player => player.update(deltaTime, gameArea));
     
     tokenManager.update(deltaTime, players);
     
@@ -196,15 +197,30 @@ function render() {
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
     
-    ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
+    drawBorder();
     
     drawScoreboard();
     
     tokenManager.draw(ctx);
     
     players.forEach(player => player.draw(ctx));
+}
+
+function drawBorder() {
+    const anyWraparound = players.some(p => p.wraparoundEnabled);
+    
+    if (anyWraparound) {
+        borderPulsePhase += 0.1;
+        const pulse = Math.sin(borderPulsePhase) * 0.5 + 0.5;
+        const brightness = 100 + pulse * 155;
+        ctx.strokeStyle = `rgb(0, ${brightness}, ${brightness})`;
+        ctx.lineWidth = 3 + pulse * 2;
+    } else {
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 3;
+    }
+    
+    ctx.strokeRect(gameArea.x, gameArea.y, gameArea.width, gameArea.height);
 }
 
 function drawScoreboard() {

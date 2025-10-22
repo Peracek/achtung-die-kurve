@@ -3,6 +3,11 @@ const TOKEN_TYPES = {
         name: 'Reverse Controls',
         color: '#ff00ff',
         duration: () => 5000 + Math.random() * 5000
+    },
+    WRAPAROUND: {
+        name: 'Wraparound',
+        color: '#00ffff',
+        duration: () => 5000 + Math.random() * 5000
     }
 };
 
@@ -80,12 +85,14 @@ class TokenManager {
         
         const token = new Token(x, y, type);
         this.tokens.push(token);
-        console, x, y, 'Total tokens:', this.tokens.length);
+        console.log('Token spawned at:', x, y, 'Total tokens:', this.tokens.length);
     }
     
     applyTokenEffect(token, player) {
         if (token.type === TOKEN_TYPES.REVERSE_CONTROLS) {
             player.applyReverseControls(token.type.duration());
+        } else if (token.type === TOKEN_TYPES.WRAPAROUND) {
+            player.applyWraparound(token.type.duration());
         }
     }
     
