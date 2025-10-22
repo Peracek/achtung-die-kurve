@@ -11,7 +11,7 @@ class Token {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.radius = 8;
+        this.radius = 12;
         this.active = true;
         this.pulsePhase = Math.random() * Math.PI * 2;
     }
@@ -19,22 +19,10 @@ class Token {
     draw(ctx) {
         if (!this.active) return;
         
-        this.pulsePhase += 0.05;
-        const pulse = Math.sin(this.pulsePhase) * 0.3 + 1;
-        const currentRadius = this.radius * pulse;
-        
-        ctx.fillStyle = this.type.color;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.type.color;
+        ctx.strokeStyle = this.type.color;
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
     }
     
@@ -90,7 +78,9 @@ class TokenManager {
         const tokenTypes = Object.values(TOKEN_TYPES);
         const type = tokenTypes[Math.floor(Math.random() * tokenTypes.length)];
         
-        this.tokens.push(new Token(x, y, type));
+        const token = new Token(x, y, type);
+        this.tokens.push(token);
+        console, x, y, 'Total tokens:', this.tokens.length);
     }
     
     applyTokenEffect(token, player) {
