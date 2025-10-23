@@ -15,6 +15,7 @@ A browser-based multiplayer implementation of the classic snake-like game "Achtu
 
 ## Controls
 
+### Keyboard Controls
 - **Player 1 (Red):** A / D
 - **Player 2 (Cyan):** ← / →
 - **Player 3 (Yellow):** J / L
@@ -22,15 +23,28 @@ A browser-based multiplayer implementation of the classic snake-like game "Achtu
 - **Player 5 (Pink):** Numpad 4 / Numpad 6
 - **Player 6 (Purple):** Numpad 7 / Numpad 9
 
+### 📱 Mobile Phone Controls
+Play from your phone! Each player can use their mobile device as a wireless controller:
+
+1. **On Computer:** Open the game and look for the mobile controller section in the menu
+2. **Get the URL:** Copy the mobile controller URL or scan the QR code with your phone's camera
+3. **On Phone:** Open the URL in your mobile browser
+4. **Connect:** Your phone will automatically connect and be assigned to a player
+5. **Play:** Use the LEFT/RIGHT touch buttons to control your line
+
+**Note:** Both keyboard and mobile controls can be used simultaneously - mix and match as you like!
+
 ## Features
 
 - 2-6 player local multiplayer
+- **Mobile phone controllers** - Use your phone as a wireless gamepad via WebRTC
 - Smooth gameplay at 60 FPS
 - Random gaps in trails for added challenge
 - **Power-up tokens** with special effects
 - Round-based scoring system
 - Responsive canvas that adapts to window size
 - Advanced collision detection
+- Cross-device multiplayer (keyboard + mobile mixed)
 
 ## Power-up Tokens
 
@@ -56,9 +70,11 @@ Special tokens spawn randomly during gameplay. Run into them to activate their e
 ## Technical Details
 
 - Built with vanilla JavaScript, HTML5 Canvas, and CSS
-- No dependencies or build process required
+- WebRTC peer-to-peer connections via PeerJS for mobile controllers
+- No server required (PeerJS cloud handles signaling only)
+- No build process required
 - Works in all modern browsers
-- Object-oriented architecture with separate classes for Players, Tokens, and Game Manager
+- Object-oriented architecture with separate classes for Players, Tokens, Controller Manager, and Game Manager
 
 ## Game Rules
 
@@ -72,9 +88,27 @@ Special tokens spawn randomly during gameplay. Run into them to activate their e
 ## Files
 
 - `index.html` - Main HTML structure and UI
+- `mobile-controller.html` - Mobile phone controller interface
 - `game.js` - Core game loop, rendering, and state management
 - `player.js` - Player class with movement, collision detection, and trail rendering
 - `token.js` - Token system with power-up effects
+- `controller-manager.js` - WebRTC connection manager for mobile controllers
 - `styles.css` - UI styling and layout
+- `mobile-styles.css` - Mobile controller UI styles
+
+## Requirements
+
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Internet connection (only for initial mobile controller pairing via PeerJS cloud)
+- For mobile controllers: smartphone with a modern mobile browser
+
+## Hosting
+
+The game can be hosted on:
+- **GitHub Pages** - Simply push to a gh-pages branch
+- **Any static hosting service** - Netlify, Vercel, etc.
+- **Local file system** - Just open index.html directly
+
+**Note:** Mobile controllers work best when the game is hosted on a web server (http/https), but will also work locally via the same WiFi network.
 
 Enjoy the game!
