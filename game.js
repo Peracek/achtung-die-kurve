@@ -7,7 +7,13 @@ const PLAYER_CONFIGS = [
     { name: 'Player 6', color: '#c7ceea', leftKey: 'Numpad7', rightKey: 'Numpad9' }
 ];
 
-const WINNING_SCORE = 10;
+const WINNING_SCORES = {
+    2: 10,
+    3: 20,
+    4: 30,
+    5: 40,
+    6: 50
+};
 const SCOREBOARD_HEIGHT = 60;
 const GAME_BORDER = 10;
 
@@ -167,18 +173,20 @@ function update(deltaTime) {
     
     players.forEach(player => {
         if (player.checkCollision(gameArea, players, tokenManager.globalWraparoundEnabled)) {
-            player.alive = false;
+            if (player.alive) {
+                player.alive = false;
+                
+                const alivePlayers = players.filter(p => p.alive);
+                alivePlayers.forEach(p => p.score++);
+            }
         }
     });
     
     const alivePlayers = players.filter(p => p.alive);
     
     if (alivePlayers.length <= 1) {
-        if (alivePlayers.length === 1) {
-            alivePlayers[0].score++;
-        }
-        
-        const winner = players.find(p => p.score >= WINNING_SCORE);
+        const winningScore = WINNING_SCORES[numPlayers] || 10;
+        const winner = players.find(p => p.score >= winningScore);
         if (winner) {
             endGame(winner);
         } else {
